@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -103,10 +102,17 @@
                 right: 10px;
                 z-index: 1000;
                 width: 120px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             }
 
             .menu-botoes.aberto {
                 display: flex;
+                animation: fadeIn 0.3s ease;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
             }
             
             .barra-superior .botoes {
@@ -243,7 +249,7 @@
     <div id="tela-listas" class="container">
         <h2>Minhas Listas</h2>
         <div class="input-group">
-            <input type="text" id="nova-lista" placeholder="Nome da nova lista">
+            <input type="text" id="nova-lista" placeholder="Nome da nova lista" onkeydown="if(event.key === 'Enter') criarLista()">
             <button onclick="criarLista()">Criar Lista</button>
         </div>
         <ul id="listas"></ul>
@@ -285,6 +291,18 @@
         function toggleMenu() {
             const menuBotoes = document.getElementById('menu-botoes');
             menuBotoes.classList.toggle('aberto');
+            
+            // Fecha o menu ao clicar fora
+            if (menuBotoes.classList.contains('aberto')) {
+                setTimeout(() => {
+                    document.addEventListener('click', function fecharMenu(e) {
+                        if (!e.target.closest('.menu-botoes') && !e.target.closest('.menu-hamburguer')) {
+                            menuBotoes.classList.remove('aberto');
+                            document.removeEventListener('click', fecharMenu);
+                        }
+                    });
+                }, 10);
+            }
         }
 
         // Função para o botão Home
