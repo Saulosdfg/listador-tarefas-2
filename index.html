@@ -5,343 +5,326 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listador de Tarefas</title>
     <style>
-        /* Reset básico */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        /* [1] ESTILOS GERAIS */
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f5f5f5;
-            color: #333;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding-top: 60px;
+            background-color: #f8f9fa;
+        }
+
+        /* [2] BARRA SUPERIOR */
+        .barra-superior {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            height: 60px;
+        }
+
+        /* [3] BOTÕES DESKTOP */
+        .botoes-desktop {
+            display: flex;
+            gap: 10px;
+        }
+
+        .botoes-desktop button {
+            background: none;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .botoes-desktop button:hover {
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        /* [4] BOTÃO HAMBÚRGUER */
+        .btn-hamburguer {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-hamburguer.ativo {
+            transform: rotate(90deg);
+        }
+
+        /* [5] MENU LATERAL - VERSÃO CORRIGIDA */
+        .menu-lateral {
+            position: fixed;
+            top: 60px;
+            right: -250px;
+            width: 200px;
+            height: auto;
+            max-height: calc(100vh - 120px);
+            background: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 1001;
+            padding: 15px;
+            border-radius: 0 0 0 8px;
+            overflow-y: auto;
+        }
+
+        .menu-lateral.aberto {
+            right: 0;
+        }
+
+        .menu-lateral button {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .menu-lateral button:hover {
+            background-color: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        /* [6] CONTAINER PRINCIPAL */
+        .container {
+            position: relative;
+            z-index: 1;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        /* Estilos para as listas */
+        .lista-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .lista-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .lista-botoes {
+            display: flex;
+            gap: 8px;
+        }
+
+        .lista-botoes button {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .btn-ver {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-excluir {
+            background-color: #f44336;
+            color: white;
+        }
+
+        /* [7] RESPONSIVIDADE */
+        @media (max-width: 768px) {
+            .botoes-desktop {
+                display: none;
+            }
+            
+            .btn-hamburguer {
+                display: block;
+                font-size: 28px;
+            }
+            
+            .menu-lateral {
+                width: 70%;
+                right: -70%;
+            }
+            
+            .menu-lateral.aberto {
+                right: 0;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="app"></div>
+    <!-- [8] BARRA SUPERIOR -->
+    <div class="barra-superior">
+        <h1>Listador de Tarefas</h1>
+        
+        <!-- Botões para desktop -->
+        <div class="botoes-desktop">
+            <button onclick="irParaHome()">Home</button>
+            <button onclick="mostrarMensagemStock()">Stock</button>
+        </div>
+        
+        <!-- Botão hambúrguer para mobile -->
+        <button class="btn-hamburguer" onclick="toggleMenu()" aria-label="Abrir menu">☰</button>
+    </div>
+    
+    <!-- [9] MENU LATERAL -->
+    <div id="menuLateral" class="menu-lateral">
+        <button onclick="irParaHome()">Home</button>
+        <button onclick="mostrarMensagemStock()">Stock</button>
+    </div>
 
-    <script type="module">
-        // ============== APP PRINCIPAL ==============
-        class TaskApp {
-            constructor() {
-                this.state = {
-                    listas: JSON.parse(localStorage.getItem('listas')) || [],
-                    menuAberto: false
-                };
-                
-                this.render();
-                this.setupEventListeners();
-            }
+    <!-- [10] CONTEÚDO PRINCIPAL -->
+    <div class="container">
+        <h2>Minhas Listas</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="nova-lista" placeholder="Nome da lista" style="flex: 1; padding: 10px;">
+            <button onclick="criarLista()" style="padding: 10px 15px; background: #4CAF50; color: white; border: none; border-radius: 4px;">Criar</button>
+        </div>
+        <div id="listas-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+
+    <script>
+        // [11] CONTROLE DO MENU
+        let menuAberto = false;
+
+        function toggleMenu() {
+            const menu = document.getElementById('menuLateral');
+            const btn = document.querySelector('.btn-hamburguer');
             
-            render() {
-                const app = document.getElementById('app');
-                app.innerHTML = '';
-                app.appendChild(this.createHeader());
-                app.appendChild(this.createMainContent());
-                if (this.state.menuAberto) {
-                    app.appendChild(this.createSideMenu());
-                }
-            }
+            menuAberto = !menuAberto;
             
-            createHeader() {
-                const header = document.createElement('header');
-                header.className = 'app-header';
-                header.innerHTML = `
-                    <h1>Listador de Tarefas</h1>
-                    <div class="desktop-buttons">
-                        <button data-action="home">Home</button>
-                        <button data-action="stock">Stock</button>
-                    </div>
-                    <button class="hamburger" data-action="toggle-menu">☰</button>
-                `;
-                return header;
-            }
-            
-            createSideMenu() {
-                const menu = document.createElement('aside');
-                menu.className = 'side-menu';
-                menu.innerHTML = `
-                    <button data-action="home">Home</button>
-                    <button data-action="stock">Stock</button>
-                `;
-                return menu;
-            }
-            
-            createMainContent() {
-                const main = document.createElement('main');
-                main.className = 'main-content';
-                main.innerHTML = `
-                    <section class="list-container">
-                        <h2>Minhas Listas</h2>
-                        <div class="list-creator">
-                            <input type="text" id="new-list" placeholder="Nome da lista">
-                            <button data-action="create-list">Criar</button>
-                        </div>
-                        <div class="lists" id="lists-container"></div>
-                    </section>
-                `;
-                this.renderLists(main);
-                return main;
-            }
-            
-            renderLists(container) {
-                const listsContainer = container.querySelector('#lists-container');
-                listsContainer.innerHTML = this.state.listas.length > 0 
-                    ? this.state.listas.map(lista => `
-                        <div class="list-item" data-id="${lista.id}">
-                            <span>${lista.nome}</span>
-                            <div class="list-actions">
-                                <button data-action="view-list" data-id="${lista.id}">Ver</button>
-                                <button data-action="delete-list" data-id="${lista.id}">Excluir</button>
-                            </div>
-                        </div>
-                    `).join('')
-                    : '<p class="empty-message">Nenhuma lista criada ainda</p>';
-            }
-            
-            setupEventListeners() {
-                document.addEventListener('click', (e) => {
-                    const action = e.target.dataset.action;
-                    if (!action) return;
-                    
-                    switch(action) {
-                        case 'toggle-menu':
-                            this.toggleMenu();
-                            break;
-                        case 'home':
-                            this.navigate('home');
-                            break;
-                        case 'stock':
-                            this.navigate('stock');
-                            break;
-                        case 'create-list':
-                            this.createList();
-                            break;
-                        case 'view-list':
-                            this.viewList(e.target.dataset.id);
-                            break;
-                        case 'delete-list':
-                            this.deleteList(e.target.dataset.id);
-                            break;
-                    }
-                    
-                    // Fechar menu ao clicar fora
-                    if (this.state.menuAberto && !e.target.closest('.side-menu') && 
-                        !e.target.closest('.hamburger')) {
-                        this.closeMenu();
-                    }
-                });
-                
-                // Responsividade dinâmica
-                window.addEventListener('resize', () => {
-                    if (window.innerWidth > 768 && this.state.menuAberto) {
-                        this.closeMenu();
-                    }
-                });
-            }
-            
-            toggleMenu() {
-                this.state.menuAberto = !this.state.menuAberto;
-                this.render();
-            }
-            
-            closeMenu() {
-                this.state.menuAberto = false;
-                this.render();
-            }
-            
-            navigate(page) {
-                this.closeMenu();
-                alert(`Você navegou para ${page}`);
-                // Aqui você implementaria a navegação real
-            }
-            
-            createList() {
-                const input = document.getElementById('new-list');
-                const nome = input.value.trim();
-                
-                if (!nome) {
-                    alert('Digite um nome para a lista!');
-                    return;
-                }
-                
-                this.state.listas.push({
-                    id: Date.now(),
-                    nome,
-                    tarefas: []
-                });
-                
-                this.saveToLocalStorage();
-                input.value = '';
-                this.render();
-            }
-            
-            viewList(id) {
-                const lista = this.state.listas.find(l => l.id == id);
-                alert(`Visualizando: ${lista.nome}\nTarefas: ${lista.tarefas.length}`);
-            }
-            
-            deleteList(id) {
-                if (confirm('Tem certeza que deseja excluir esta lista?')) {
-                    this.state.listas = this.state.listas.filter(l => l.id != id);
-                    this.saveToLocalStorage();
-                    this.render();
-                }
-            }
-            
-            saveToLocalStorage() {
-                localStorage.setItem('listas', JSON.stringify(this.state.listas));
+            if (menuAberto) {
+                menu.classList.add('aberto');
+                btn.classList.add('ativo');
+            } else {
+                fecharMenu();
             }
         }
 
-        // ============== ESTILOS DINÂMICOS ==============
-        const dynamicStyles = document.createElement('style');
-        dynamicStyles.textContent = `
-            .app-header {
-                background-color: #4CAF50;
-                color: white;
-                padding: 15px 20px;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                z-index: 1000;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            }
+        function fecharMenu() {
+            const menu = document.getElementById('menuLateral');
+            const btn = document.querySelector('.btn-hamburguer');
             
-            .desktop-buttons {
-                display: flex;
-                gap: 10px;
-            }
-            
-            .desktop-buttons button, .side-menu button {
-                background: none;
-                border: none;
-                color: inherit;
-                padding: 8px 12px;
-                cursor: pointer;
-                font-size: 14px;
-            }
-            
-            .hamburger {
-                display: none;
-                background: none;
-                border: none;
-                color: white;
-                font-size: 24px;
-                cursor: pointer;
-                padding: 5px 10px;
-            }
-            
-            .side-menu {
-                position: fixed;
-                top: 60px;
-                right: 0;
-                width: 250px;
-                height: calc(100vh - 60px);
-                background: white;
-                box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-                z-index: 999;
-                display: flex;
-                flex-direction: column;
-                padding: 20px;
-                gap: 10px;
-            }
-            
-            .main-content {
-                margin-top: 80px;
-                padding: 20px;
-                max-width: 800px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-            
-            .list-creator {
-                display: flex;
-                gap: 10px;
-                margin: 20px 0;
-            }
-            
-            .list-creator input {
-                flex: 1;
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-            }
-            
-            .list-creator button {
-                padding: 10px 15px;
-                background: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-            
-            .list-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 12px 15px;
-                background: white;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                margin-bottom: 10px;
-            }
-            
-            .list-actions {
-                display: flex;
-                gap: 8px;
-            }
-            
-            .list-actions button {
-                padding: 6px 12px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-            
-            .list-actions button:first-child {
-                background: #4CAF50;
-                color: white;
-            }
-            
-            .list-actions button:last-child {
-                background: #f44336;
-                color: white;
-            }
-            
-            .empty-message {
-                text-align: center;
-                color: #666;
-                margin-top: 20px;
-            }
-            
-            @media (max-width: 768px) {
-                .desktop-buttons {
-                    display: none;
-                }
-                
-                .hamburger {
-                    display: block;
-                }
-                
-                .side-menu {
-                    width: 70%;
-                }
-            }
-        `;
-        document.head.appendChild(dynamicStyles);
+            menu.classList.remove('aberto');
+            btn.classList.remove('ativo');
+            menuAberto = false;
+        }
 
-        // ============== INICIALIZAÇÃO ==============
-        document.addEventListener('DOMContentLoaded', () => {
-            new TaskApp();
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('menuLateral');
+            const btnHamburguer = document.querySelector('.btn-hamburguer');
+            
+            if (menuAberto && !menu.contains(e.target) && e.target !== btnHamburguer) {
+                fecharMenu();
+            }
+        });
+
+        // [12] FUNÇÕES DOS BOTÕES
+        function irParaHome() {
+            fecharMenu();
+            alert("Você clicou em Home");
+        }
+
+        function mostrarMensagemStock() {
+            fecharMenu();
+            alert("Você clicou em Stock");
+        }
+
+        // [13] SISTEMA DE LISTAS
+        let listas = JSON.parse(localStorage.getItem('listas')) || [];
+
+        function salvarListas() {
+            localStorage.setItem('listas', JSON.stringify(listas));
+        }
+
+        function criarLista() {
+            const input = document.getElementById('nova-lista');
+            const nomeLista = input.value.trim();
+            
+            if (nomeLista === '') {
+                alert("Digite um nome para a lista!");
+                return;
+            }
+            
+            const novaLista = {
+                id: Date.now(),
+                nome: nomeLista,
+                tarefas: []
+            };
+            
+            listas.push(novaLista);
+            salvarListas();
+            renderizarListas();
+            
+            input.value = '';
+        }
+
+        function renderizarListas() {
+            const container = document.getElementById('listas-container');
+            container.innerHTML = '';
+            
+            if (listas.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Nenhuma lista criada ainda</p>';
+                return;
+            }
+            
+            listas.forEach(lista => {
+                const listaElement = document.createElement('div');
+                listaElement.className = 'lista-item';
+                listaElement.innerHTML = `
+                    <span>${lista.nome}</span>
+                    <div class="lista-botoes">
+                        <button class="btn-ver" onclick="verLista(${lista.id})">Ver</button>
+                        <button class="btn-excluir" onclick="excluirLista(${lista.id})">Excluir</button>
+                    </div>
+                `;
+                container.appendChild(listaElement);
+            });
+        }
+
+        function verLista(id) {
+            const lista = listas.find(l => l.id === id);
+            alert(`Visualizando lista: ${lista.nome}\nTarefas: ${lista.tarefas.length}`);
+        }
+
+        function excluirLista(id) {
+            if (confirm('Tem certeza que deseja excluir esta lista?')) {
+                listas = listas.filter(lista => lista.id !== id);
+                salvarListas();
+                renderizarListas();
+            }
+        }
+
+        // [14] INICIALIZAÇÃO
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Sistema pronto!");
+            renderizarListas();
         });
     </script>
 </body>
